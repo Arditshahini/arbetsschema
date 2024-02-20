@@ -8,6 +8,8 @@ export const CreateUser = () => {
 
 	const [firstName, setFirstName] = useState('')
 	const [lastName, setLastName]	= useState('')
+	const [toDo, setToDo]	= useState('')
+    const [toDoDescription, setToDoDescription] = useState('')
 	const [feedback, setFeedback] = useState('')
 	const [submitted, setSubmitted] = useState(false)
 
@@ -19,7 +21,7 @@ export const CreateUser = () => {
 			setLastName('')
 			setTimeout(() => {
 				setFeedback('')
-			}, 5000)	
+			}, 5000)
 
 			createUser({
 				user: {
@@ -32,12 +34,12 @@ export const CreateUser = () => {
 			setSubmitted(false)
 			setFeedback('Du måste fylla i alla fält!')
 		}
-	}	
+	}
 
 	return (
 		<div className={styles.container}>
 			<TextInput
-				value={firstName}	
+				value={firstName}
 				placeholder="Firstname"
 				onInput={(event) => {
 					setFirstName(event.target.value)
@@ -50,7 +52,21 @@ export const CreateUser = () => {
 					setLastName(event.target.value)
 				}}
 			/>
-			<button className={styles.submitButton} onClick={submitHandler}>Lägg till användare</button>	
+			<TextInput
+				value={toDo}
+				placeholder="Arbetsuppgift"
+				onInput={(event) => {
+					setLastName(event.target.value)
+				}}
+			/>
+			<TextInput
+				value={toDoDescription}
+				placeholder="Arbetsbeskrivning"
+				onInput={(event) => {
+					setLastName(event.target.value)
+				}}
+			/>
+			<button className={styles.submitButton} onClick={submitHandler}>Lägg till användare</button>
 			<p className={styles.feedbackText} style={{ color: submitted ? '#3c425c' : '#ed4e59' }}>{feedback}</p>
 		</div>
 	)
