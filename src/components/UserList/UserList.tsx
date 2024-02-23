@@ -12,8 +12,11 @@ export function UserList() {
     const [deletingUserId, setDeletingUserId] = useState(null)
     const [editingUserId, setEditingUserId] = useState(null)
     const [updatedUserData, setUpdatedUserData] = useState({
-        firstName: '',
-        lastName: ''
+        clientName: '',
+        clientInfo: '',
+        workDescription: '',
+        pictures: [],
+        status:''
     })
 
     const handleDeleteUser = async (userId) => {
@@ -60,7 +63,7 @@ export function UserList() {
 
         return (
             <div>
-                <h2>Användarlista</h2>
+                <h2>Uppdrag:</h2>
                 <table>
                     <thead>
                         <tr>
@@ -81,32 +84,32 @@ export function UserList() {
                                     {editingUserId === user.id ? (
                                         <input
                                             type="text"
-                                            value={updatedUserData.firstName}
+                                            value={updatedUserData.clientName}
                                             onChange={(e) =>
                                                 setUpdatedUserData({
                                                     ...updatedUserData,
-                                                    firstName: e.target.value
+                                                    clientName: e.target.value
                                                 })
                                             }
                                         />
                                     ) : (
-                                        user.firstName
+                                        user.clientName
                                     )}
                                 </td>
                                 <td>
                                     {editingUserId === user.id ? (
                                         <input
                                             type="text"
-                                            value={updatedUserData.lastName}
+                                            value={updatedUserData.clientInfo}
                                             onChange={(e) =>
                                                 setUpdatedUserData({
                                                     ...updatedUserData,
-                                                    lastName: e.target.value
+                                                    clientInfo: e.target.value
                                                 })
                                             }
                                         />
                                     ) : (
-                                        user.lastName
+                                        user.clientInfo
                                     )}
                                 </td>
                                 <td>

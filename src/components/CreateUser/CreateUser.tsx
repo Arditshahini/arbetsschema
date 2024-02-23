@@ -1,73 +1,84 @@
-import React, { useState } from "react"
-import { TextInput } from "../TextInput"
+import React, { useState } from 'react'
+import { TextInput } from '../TextInput'
 import styles from './CreateUser.module.css'
-import { useCreateUserMutation } from "../../store/api/usersApi"
+import { useCreateUserMutation } from '../../store/api/usersApi'
+
 
 export const CreateUser = () => {
-	const [createUser] = useCreateUserMutation()
+    const [createUser] = useCreateUserMutation()
 
-	const [firstName, setFirstName] = useState('')
-	const [lastName, setLastName]	= useState('')
-	const [toDo, setToDo]	= useState('')
-    const [toDoDescription, setToDoDescription] = useState('')
-	const [feedback, setFeedback] = useState('')
-	const [submitted, setSubmitted] = useState(false)
+    const [clientInfo, setClientInfo] = useState('')
+    const [clientName, setClientName] = useState('')
+    const [workDescription, setWorkDescription] = useState('')
+    const [status, setStatus] = useState('')
+    const [feedback, setFeedback] = useState('')
+    const [submitted, setSubmitted] = useState(false)
 
-	const submitHandler = () => {
-		if (firstName !== '' && lastName !== '') {
-			setFeedback(`Hej, ${firstName} ${lastName}, välkommen!`)
-			setSubmitted(true)
-			setFirstName('')
-			setLastName('')
-			setTimeout(() => {
-				setFeedback('')
-			}, 5000)
+    const submitHandler = () => {
+        if (clientInfo !== '' && clientName !== '') {
+            setFeedback(`Hej, ${clientInfo} ${clientName}, välkommen!`)
+            setSubmitted(true)
+            setClientInfo('')
+            setClientName('')
+            setTimeout(() => {
+                setFeedback('')
+            }, 5000)
 
-			createUser({
-				user: {
-					firstName: firstName,
-					lastName: lastName
-				}
-			})
+            createUser({
+                user: {
+                    clientInfo: clientInfo,
+                    clientName: clientName,
+                    workDescription: workDescription,
+                    status:status,
+                    pictures:[]
 
-		} else {
-			setSubmitted(false)
-			setFeedback('Du måste fylla i alla fält!')
-		}
-	}
+                }
+            })
+        } else {
+            setSubmitted(false)
+            setFeedback('Du måste fylla i alla fält!')
+        }
+    }
 
-	return (
-		<div className={styles.container}>
-			<TextInput
-				value={firstName}
-				placeholder="Firstname"
-				onInput={(event) => {
-					setFirstName(event.target.value)
-				}}
-			/>
-			<TextInput
-				value={lastName}
-				placeholder="Lastname"
-				onInput={(event) => {
-					setLastName(event.target.value)
-				}}
-			/>
-			<TextInput
-				value={toDo}
-				placeholder="Arbetsuppgift"
-				onInput={(event) => {
-					setLastName(event.target.value)
-				}}
-			/>
-			<TextInput
-				value={toDoDescription}
-				placeholder="Arbetsbeskrivning"
-				onInput={(event) => {
-					setLastName(event.target.value)
-				}}
-			/>
-			<button className={styles.submitButton} onClick={submitHandler}>Lägg till användare</button>
-			<p className={styles.feedbackText} style={{ color: submitted ? '#3c425c' : '#ed4e59' }}>{feedback}</p>
-		</div>
-	)
+    return (
+        <div className={styles.container}>
+            <TextInput
+                value={clientName}
+                placeholder="Namn"
+                onInput={(event) => {
+                    setClientName(event.target.value)
+                }}
+            />
+            <TextInput
+                value={clientInfo}
+                placeholder="Adress"
+                onInput={(event) => {
+                    setClientInfo(event.target.value)
+                }}
+            />
+            <TextInput
+                value={workDescription}
+                placeholder="Arbetsbeskrivning"
+                onInput={(event) => {
+                    setWorkDescription(event.target.value)
+                }}
+            />
+            <TextInput
+                value={status}
+                placeholder="status"
+                onInput={(event) => {
+                    setStatus(event.target.value)
+                }}
+            />
+            <button className={styles.submitButton} onClick={submitHandler}>
+                Lägg till arbete
+            </button>
+            <p
+                className={styles.feedbackText}
+                style={{ color: submitted ? '#3c425c' : '#ed4e59' }}
+            >
+                {feedback}
+            </p>
+        </div>
+    )
 }
