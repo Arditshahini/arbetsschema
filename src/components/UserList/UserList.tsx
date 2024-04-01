@@ -1,9 +1,26 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import {
     useGetUsersQuery,
     useDeleteUserMutation,
     useUpdateUserMutation
 } from '../../store/api/usersApi'
+import { getStorage, ref, getDownloadURL } from 'firebase/storage'
+import { storage } from '../../firebase-config'
+import {
+    CardContent,
+    Button,
+    TextField,
+    Modal,
+    IconButton,
+    Card,
+    Box,
+    Chip,
+    Stack,
+    Divider,
+    Typography
+} from '@mui/material'
+
+import DeleteIcon from '@mui/icons-material/Delete'
 
 export function UserList() {
     const { data, isLoading, refetch } = useGetUsersQuery({})
@@ -16,8 +33,10 @@ export function UserList() {
         clientInfo: '',
         workDescription: '',
         pictures: [],
-        status:''
+        status: ''
     })
+    const [openModal, setOpenModal] = useState(false)
+    const [selectedUser, setSelectedUser] = useState(null)
 
     const handleDeleteUser = async (userId) => {
         try {
@@ -25,7 +44,7 @@ export function UserList() {
             await deleteUser({ userId })
             refetch()
         } catch (error) {
-            console.error(`Ett fel uppstod vid radering: ${error.message}`)
+            console.error(`An error occurred while deleting: ${error.message}`)
         } finally {
             setDeletingUserId(null)
         }
@@ -36,114 +55,184 @@ export function UserList() {
         setUpdatedUserData(user)
     }
 
-    const handleUpdateUser = async (userId) => {
+    const handleUpdateUser = async () => {
         try {
-            // Anropa updateUser-mutationen för att uppdatera användaren med uppdaterade uppgifter.
-            await updateUser({ userId, updatedData: updatedUserData })
-            setEditingUserId(null)
+            await updateUser({
+                userId: selectedUser.id,
+                updatedData: updatedUserData
+            })
+            handleCloseModal()
             refetch()
         } catch (error) {
-            console.error(`Ett fel uppstod vid uppdatering: ${error.message}`)
+            console.error(`An error occurred while updating: ${error.message}`)
         }
+    }
+
+    const openImage = async (imagePath) => {
+        try {
+            const imageUrl = await getDownloadURL(ref(storage, imagePath))
+            window.open(imageUrl)
+        } catch (error) {
+            console.error('Error fetching image:', error)
+        }
+    }
+
+    const handleOpenModal = (user) => {
+        setSelectedUser(user)
+        setOpenModal(true)
+    }
+
+    const handleCloseModal = () => {
+        setOpenModal(false)
+    }
+
+    const renderModal = () => {
+        if (!selectedUser) return null
+
+        return (
+            <Modal open={openModal} onClose={handleCloseModal}>
+                <Card variant="outlined" sx={{ maxWidth: 360 }}>
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: 400,
+                            bgcolor: 'background.paper',
+                            boxShadow: 24,
+                            p: 5
+                        }}
+                    >
+                        <Stack
+                            direction="row"
+                            justifyContent="space-between"
+                            alignItems="center"
+                        >
+                            <Typography
+                                gutterBottom
+                                variant="h5"
+                                component="div"
+                            >
+                                Översikt
+                            </Typography>
+                        </Stack>
+                        <Stack>
+                            <Typography
+                                gutterBottom
+                                variant="h6"
+                                component="div"
+                            >
+                                Client Name: {selectedUser.clientName}
+                            </Typography>
+                        </Stack>
+                        <Typography variant="body1" gutterBottom>
+                            Client Info: {selectedUser.clientInfo}
+                        </Typography>
+                        <Divider />
+                        <Typography gutterBottom variant="body2">
+                            Select type
+                        </Typography>
+                        <Stack direction="row" spacing={1}>
+                            <Chip
+                                variant="outlined"
+                                label="Bilder"
+                                size="small"
+                            />
+                            <Chip
+                                variant="outlined"
+                                label="Filer"
+                                size="small"
+                            />
+                            <Chip
+                                variant="outlined"
+                                label="Ändra"
+                                size="small"
+                            />
+                        </Stack>
+                    </Box>
+                </Card>
+            </Modal>
+        )
     }
 
     const renderUserList = () => {
         if (isLoading) {
-            return <div>Laddar användare...</div>
+            return <Typography variant="body1">Loading users...</Typography>
         }
 
         if (!data || data.length === 0) {
             return (
                 <div>
-                    Ingen data tillgänglig.
-                    <button onClick={refetch}>Hämta på nytt</button>
+                    <Typography variant="body1">No data available.</Typography>
+                    <Button variant="contained" onClick={refetch}>
+                        Refresh
+                    </Button>
                 </div>
             )
         }
 
         return (
             <div>
-                <h2>Uppdrag:</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Förnamn</th>
-                            <th>Efternamn</th>
-                            <th>Åtgärder</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {data.map((user) => (
-                            <tr key={user.id}>
-                                <td
-                                    onClick={() =>
-                                        handleEditUser(user.id, user)
+                <Typography variant="h5">Projects:</Typography>
+                {data.map((user) => (
+                    <div
+                        key={user.id}
+                        style={{
+                            marginBottom: '1rem',
+                            display: 'flex',
+                            alignItems: 'center'
+                        }}
+                    >
+                        <Typography
+                            variant="h5"
+                            component="div"
+                            onClick={() => handleEditUser(user.id, user)}
+                            style={{ cursor: 'pointer', marginRight: '1rem' }}
+                        >
+                            {editingUserId === user.id ? (
+                                <TextField
+                                    value={updatedUserData.clientName}
+                                    onChange={(e) =>
+                                        setUpdatedUserData({
+                                            ...updatedUserData,
+                                            clientName: e.target.value
+                                        })
                                     }
-                                    style={{ cursor: 'pointer' }}
-                                >
-                                    {editingUserId === user.id ? (
-                                        <input
-                                            type="text"
-                                            value={updatedUserData.clientName}
-                                            onChange={(e) =>
-                                                setUpdatedUserData({
-                                                    ...updatedUserData,
-                                                    clientName: e.target.value
-                                                })
-                                            }
-                                        />
-                                    ) : (
-                                        user.clientName
-                                    )}
-                                </td>
-                                <td>
-                                    {editingUserId === user.id ? (
-                                        <input
-                                            type="text"
-                                            value={updatedUserData.clientInfo}
-                                            onChange={(e) =>
-                                                setUpdatedUserData({
-                                                    ...updatedUserData,
-                                                    clientInfo: e.target.value
-                                                })
-                                            }
-                                        />
-                                    ) : (
-                                        user.clientInfo
-                                    )}
-                                </td>
-                                <td>
-                                    {editingUserId === user.id ? (
-                                        <button
-                                            onClick={() =>
-                                                handleUpdateUser(user.id)
-                                            }
-                                        >
-                                            Uppdatera
-                                        </button>
-                                    ) : (
-                                        <button
-                                            onClick={() =>
-                                                handleDeleteUser(user.id)
-                                            }
-                                            disabled={
-                                                deletingUserId === user.id
-                                            }
-                                        >
-                                            {deletingUserId === user.id
-                                                ? 'Raderar...'
-                                                : 'Radera'}
-                                        </button>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>{' '}
-                <button onClick={refetch}>Hämta på nytt</button>
+                                />
+                            ) : (
+                                user.clientName
+                            )}
+                        </Typography>
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => handleOpenModal(user)}
+                        >
+                            View Details
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<DeleteIcon />}
+                            onClick={() => handleDeleteUser(user.id)}
+                            disabled={deletingUserId === user.id}
+                        >
+                            Delete
+                        </Button>
+                    </div>
+                ))}
+                <Button variant="outlined" size="small" onClick={refetch}>
+                    Refresh
+                </Button>
             </div>
         )
     }
 
-    return <div>{renderUserList()}</div>
+    return (
+        <div>
+            {renderUserList()}
+            {renderModal()}
+        </div>
+    )
 }

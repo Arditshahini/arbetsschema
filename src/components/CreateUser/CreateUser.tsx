@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import { TextInput } from '../TextInput'
 import styles from './CreateUser.module.css'
 import { useCreateUserMutation } from '../../store/api/usersApi'
-
+import { storage } from '../../firebase-config'
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
 
 export const CreateUser = () => {
     const [createUser] = useCreateUserMutation()
@@ -11,10 +12,11 @@ export const CreateUser = () => {
     const [clientName, setClientName] = useState('')
     const [workDescription, setWorkDescription] = useState('')
     const [status, setStatus] = useState('')
+    const [file, setFile] = useState(null)
     const [feedback, setFeedback] = useState('')
     const [submitted, setSubmitted] = useState(false)
 
-    const submitHandler = () => {
+    const submitHandler = async () => {
         if (clientInfo !== '' && clientName !== '') {
             setFeedback(`Hej, ${clientInfo} ${clientName}, välkommen!`)
             setSubmitted(true)
@@ -24,14 +26,33 @@ export const CreateUser = () => {
                 setFeedback('')
             }, 5000)
 
+            let imageUrl = null
+            // Ladda upp filen till Firebase Storage
+            if (file) {
+                const storageRef = ref(storage, `files/${file.name}`) // Skapa en referens till platsen där filen ska laddas upp
+                try {
+                    await uploadBytes(storageRef, file) // Ladda upp filen till Firebase Storage
+
+                    imageUrl = await getDownloadURL(storageRef)
+
+                    console.log(
+                        'Filen laddades upp till Firebase Storage',
+                        imageUrl
+                    )
+                } catch (error) {
+                    console.error(
+                        'Fel vid uppladdning av fil till Firebase Storage:',
+                        error
+                    )
+                }
+            }
             createUser({
                 user: {
                     clientInfo: clientInfo,
                     clientName: clientName,
                     workDescription: workDescription,
-                    status:status,
-                    pictures:[]
-
+                    status: status,
+                    files: [imageUrl]
                 }
             })
         } else {
@@ -70,6 +91,12 @@ export const CreateUser = () => {
                     setStatus(event.target.value)
                 }}
             />
+
+            <input
+                type="file"
+                onChange={(event) => setFile(event.target.files[0])} // Uppdatera state när användaren väljer en fil
+            />
+
             <button className={styles.submitButton} onClick={submitHandler}>
                 Lägg till arbete
             </button>
